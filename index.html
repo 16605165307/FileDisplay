@@ -575,8 +575,8 @@
         </div>
         <div class="header-divider"></div>
         <div class="header-titles">
-            <p class="header-subtitle">第十届高等教育省级教学成果奖申报</p>
-            <h1 class="header-title"></h1>
+            <p class="header-subtitle">教学成果奖申报</p>
+            <h1 class="header-title">2026职业教育国家教学成果奖申报</h1>
         </div>
     </div>
 </header>
@@ -669,35 +669,43 @@ async function _init() {
     _initRan = true;
 
     // 1. fetch wenjianziliao/ 目录，解析子文件夹名
+    // 固定顺序：申请书、总结报告、应用效果、支撑材料
+    var CATEGORY_ORDER = [
+        { key: 'application', name: '申请书' },
+        { key: 'report',     name: '总结报告' },
+        { key: 'effect',     name: '应用效果' },
+        { key: 'material',   name: '支撑材料' }
+    ];
+
     try {
         var resp = await fetch('wenjianziliao/');
         if (!resp.ok) throw new Error('目录不可读');
         var text = await resp.text();
         // 从 Nginx autoindex HTML 中提取子目录名（<a href="xxx/">）
-        var dirs = [];
+        var serverDirs = [];
         var re = /<a href="([^"]+)\/">/g;
         var m;
         while ((m = re.exec(text)) !== null) {
             var name = decodeURIComponent(m[1]).replace(/\/$/, '');
-            if (name && name !== '.' && name !== '..') dirs.push(name);
+            if (name && name !== '.' && name !== '..') serverDirs.push(name);
         }
-        if (dirs.length === 0) {
-            // 回退到手写的默认类别
-            dirs = ['申请书', '总结报告', '应用效果', '支撑材料'];
-        }
-        // 构建 CATEGORIES，用拼音做 key
-        var defaultKeys = ['application', 'report', 'effect', 'material'];
-        dirs.forEach(function (d, i) {
-            var key = defaultKeys[i] || ('cat' + i);
-            var displayName = d.replace(/[/\\]/g, '').trim();
-            CATEGORIES[key] = { name: displayName, files: [], key: key };
+        // 按固定顺序匹配服务器文件夹
+        CATEGORY_ORDER.forEach(function (item) {
+            if (serverDirs.indexOf(item.name) >= 0) {
+                CATEGORIES[item.key] = { name: item.name, files: [], key: item.key };
+            }
         });
+        // 如果服务器上没有匹配的文件夹，则使用默认全部
+        if (Object.keys(CATEGORIES).length === 0) {
+            CATEGORY_ORDER.forEach(function (item) {
+                CATEGORIES[item.key] = { name: item.name, files: [], key: item.key };
+            });
+        }
     } catch (e) {
         console.warn('无法读取目录，使用默认类别:', e);
-        CATEGORIES.application = { name: '申请书', files: [], key: 'application' };
-        CATEGORIES.report = { name: '总结报告', files: [], key: 'report' };
-        CATEGORIES.effect = { name: '应用效果', files: [], key: 'effect' };
-        CATEGORIES.material = { name: '支撑材料', files: [], key: 'material' };
+        CATEGORY_ORDER.forEach(function (item) {
+            CATEGORIES[item.key] = { name: item.name, files: [], key: item.key };
+        });
     }
 
     // 2. 动态生成导航栏和侧边栏
