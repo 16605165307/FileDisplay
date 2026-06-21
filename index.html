@@ -183,11 +183,10 @@
 
         /* 文档查看器容器：占满 main-content，内部滚动 */
         .doc-viewer {
-            border: 1px solid #ccc; background: #fff;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border: none; background: #fff;
             display: flex; flex-direction: column;
-            flex: 1; /* 撑满父容器 */
-            min-height: 0; /* 允许收缩 */
+            flex: 1;
+            min-height: 0;
             overflow: hidden;
         }
 
@@ -222,12 +221,9 @@
             flex: 1;
             overflow-y: auto;   /* 纵向滚动 */
             overflow-x: hidden; /* 禁止横向滚动 */
-            background: #f0f0f0;
+            background: #fff;
             position: relative;
             min-height: 0;
-            /* 自定义滚动条样式，类似参考网站 */
-            scrollbar-width: thin;
-            scrollbar-color: #aaa transparent;
         }
 
         /* WebKit 滚动条美化 */
@@ -235,13 +231,13 @@
             width: 10px;
         }
         .doc-scroll-wrap::-webkit-scrollbar-track {
-            background: #f0f0f0;
+            background: #f5f5f5;
             border-left: 1px solid #ddd;
         }
         .doc-scroll-wrap::-webkit-scrollbar-thumb {
             background: #bbb;
             border-radius: 5px;
-            border: 2px solid #f0f0f0;
+            border: 2px solid #f5f5f5;
         }
         .doc-scroll-wrap::-webkit-scrollbar-thumb:hover {
             background: #999;
@@ -612,20 +608,6 @@
 
         <!-- 文档查看器：工具栏 + 可滚动内容区 -->
         <div class="doc-viewer">
-            <!-- 工具栏（固定） -->
-            <div class="doc-toolbar">
-                <button class="toolbar-btn" title="目录" id="btnToc">▤</button>
-                <button class="toolbar-btn" title="上一页" id="btnPrev" disabled>▲</button>
-                <button class="toolbar-btn" title="下载" id="btnDownload">⬇</button>
-                <span class="toolbar-divider"></span>
-                <span class="toolbar-page-info" id="pageInfo">1 / 23</span>
-                <button class="toolbar-btn disabled" title="缩小" id="btnZoomOut">－</button>
-                <button class="toolbar-btn disabled" title="放大" id="btnZoomIn">＋</button>
-                <span class="toolbar-spacer"></span>
-                <span class="toolbar-divider"></span>
-                <button class="toolbar-btn" title="下一页" id="btnNext">▼</button>
-                <button class="toolbar-btn" title="全屏" id="btnFullscreen">⛶</button>
-            </div>
 
             <!-- ===== 可滚动的文档区域 ===== -->
             <div class="doc-scroll-wrap" id="docScrollWrap">
@@ -648,10 +630,10 @@
 <!-- ==================== 页面底部 ==================== -->
 <footer class="site-footer">
     <p class="footer-contact">
-        泰州职业技术学院 · 智能数字学院
+        泰州职业技术学院
     </p>
     <p class="footer-copy">
-        版权所有 © 泰州职业技术学院智能数字学院
+        版权所有 © 泰州职业技术学院
     </p>
     </p>
 </footer>
@@ -977,9 +959,12 @@ function renderPage(pageNum, direction, force) {
 
 function updateToolbar() {
     var total = TOTAL();
-    $id('pageInfo').textContent = total <= 1 ? '' : (currentPage + ' / ' + total);
-    $id('btnPrev').disabled = currentPage <= 1;
-    $id('btnNext').disabled = currentPage >= total;
+    var pageInfo = $id('pageInfo');
+    var btnPrev = $id('btnPrev');
+    var btnNext = $id('btnNext');
+    if (pageInfo) pageInfo.textContent = total <= 1 ? '' : (currentPage + ' / ' + total);
+    if (btnPrev) btnPrev.disabled = currentPage <= 1;
+    if (btnNext) btnNext.disabled = currentPage >= total;
 }
 function renderPagination() {
     var bar = $id('paginationBar');
@@ -1048,9 +1033,12 @@ function bindEvents() {
             if (cat && cat !== currentCategory) switchCategory(cat);
         });
     });
-    $id('btnPrev').addEventListener('click', function () { if (currentPage > 1) renderPage(currentPage - 1, 'prev'); });
-    $id('btnNext').addEventListener('click', function () { if (currentPage < TOTAL()) renderPage(currentPage + 1, 'next'); });
-    $id('btnDownload').addEventListener('click', function () { alert('下载功能：将导出当前文档为 PDF 格式（演示模式）'); });
+    var btnPrev = $id('btnPrev');
+    var btnNext = $id('btnNext');
+    if (btnPrev) btnPrev.addEventListener('click', function () { if (currentPage > 1) renderPage(currentPage - 1, 'prev'); });
+    if (btnNext) btnNext.addEventListener('click', function () { if (currentPage < TOTAL()) renderPage(currentPage + 1, 'next'); });
+    var btnDownload = $id('btnDownload');
+    if (btnDownload) btnDownload.addEventListener('click', function () { alert('下载功能：将导出当前文档为 PDF 格式（演示模式）'); });
 
     $id('paginationBar').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-p]');
